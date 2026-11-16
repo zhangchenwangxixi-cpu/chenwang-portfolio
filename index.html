@@ -630,38 +630,41 @@
       const musicLabel = musicToggle.querySelector(".sound-note__label");
       const musicHint = musicToggle.querySelector(".sound-note__hint");
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      // 若放置 assets/music/trip-v2.mp3，则优先播放该曲；缺文件时自动回落到合成氛围音。
+      // 只播放用户指定的 Trip；页面打开即预加载，失败时允许重试，不切换其他音乐。
       const trackElement = new Audio();
       trackElement.loop = true;
-      trackElement.preload = "none";
-      trackElement.volume = .72;
+      trackElement.preload = "auto";
+      trackElement.volume = .5;
       const trackSource = "assets/music/trip-v2.mp3";
+      trackElement.src = trackSource;
       let trackState = "unknown";
+      let trackPromise = null;
       const loadTrack = () => {
-        if (trackState === "ready" || trackState === "missing") return Promise.resolve(trackState === "ready");
-        if (trackState === "loading") {
-          return new Promise(resolve => {
-            const timer = window.setInterval(() => {
-              if (trackState !== "loading") { window.clearInterval(timer); resolve(trackState === "ready"); }
-            }, 200);
-          });
+        if (trackState === "ready" || trackElement.readyState >= 2) {
+          trackState = "ready";
+          return Promise.resolve(true);
         }
+        if (trackPromise) return trackPromise;
         trackState = "loading";
-        return new Promise(resolve => {
+        trackPromise = new Promise(resolve => {
+          let settled = false;
           const done = result => {
+            if (settled) return;
+            settled = true;
             trackElement.removeEventListener("canplay", onCanPlay);
             trackElement.removeEventListener("error", onError);
-            trackState = result ? "ready" : "missing";
+            trackState = result ? "ready" : "unknown";
+            trackPromise = null;
             resolve(result);
           };
           const onCanPlay = () => done(true);
           const onError = () => done(false);
-          trackElement.addEventListener("canplay", onCanPlay, { once: true });
-          trackElement.addEventListener("error", onError, { once: true });
-          trackElement.src = trackSource;
+          trackElement.addEventListener("canplay", onCanPlay);
+          trackElement.addEventListener("error", onError);
           trackElement.load();
-          window.setTimeout(() => done(trackElement.readyState >= 2), 6000);
+          window.setTimeout(() => done(trackElement.readyState >= 2), 30000);
         });
+        return trackPromise;
       };
       let musicContext = null;
       let musicMaster = null;
@@ -753,10 +756,11 @@
         if (!playing && !musicIsPlaying) return;
         if (playing) {
           musicStarting = true;
+          musicHint.textContent = "LOADING TRIP…";
           const hasTrack = await loadTrack();
           if (hasTrack) {
-            try { await trackElement.play(); } catch (_) { trackState = "missing"; }
-            if (trackState === "ready") {
+            try {
+              await trackElement.play();
               musicIsPlaying = true;
               musicStarting = false;
               musicToggle.classList.add("is-playing");
@@ -765,34 +769,18 @@
               musicLabel.textContent = "MUSIC ON";
               musicHint.textContent = "TRIP";
               return;
+            } catch (_) {
+              trackState = "unknown";
             }
           }
-          if (!AudioContextClass) {
-            musicStarting = false;
-            musicHint.textContent = "AUDIO UNAVAILABLE";
-            musicToggle.disabled = true;
-            return;
-          }
-          buildMusicContext();
-          try { await musicContext.resume(); } catch (_) { musicStarting = false; return; }
-          musicMaster.gain.cancelScheduledValues(musicContext.currentTime);
-          musicMaster.gain.setTargetAtTime(.72, musicContext.currentTime, .45);
-          if (!musicIsPlaying) {
-            musicChordIndex = 0;
-            scheduleMusicChord(musicChordIndex, musicContext.currentTime + .12);
-            musicTimer = window.setInterval(() => {
-              if (!musicIsPlaying) return;
-              musicChordIndex = (musicChordIndex + 1) % musicChords.length;
-              scheduleMusicChord(musicChordIndex, musicContext.currentTime + .08);
-            }, 7200);
-          }
-          musicIsPlaying = true;
+          musicIsPlaying = false;
           musicStarting = false;
-          musicToggle.classList.add("is-playing");
-          musicToggle.setAttribute("aria-pressed", "true");
-          musicToggle.setAttribute("aria-label", "关闭背景音乐");
-          musicLabel.textContent = "MUSIC ON";
-          musicHint.textContent = "CLICK TO MUTE";
+          musicToggle.classList.remove("is-playing");
+          musicToggle.setAttribute("aria-pressed", "false");
+          musicToggle.setAttribute("aria-label", "开启背景音乐");
+          musicLabel.textContent = "MUSIC OFF";
+          musicHint.textContent = hasTrack ? "TRIP PLAY FAILED · RETRY" : "TRIP LOAD FAILED · RETRY";
+          return;
         } else {
           musicIsPlaying = false;
           if (trackElement) {
