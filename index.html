@@ -1,0 +1,1586 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#161813">
+  <meta name="description" content="张辰望的设计作品集：以好奇心观察生活，用影像与三维设计记录灵感。">
+  <title>张辰望 — Design with Feeling</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f7f4e9;
+      --muted: rgba(247, 244, 233, .72);
+      --gold: #e5cb7e;
+      --olive: #aaa98d;
+      --page: #171a15;
+      --scroll-distance: 1000vh;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--page); scroll-behavior: auto; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background: var(--page);
+      font-family: Inter, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .scroll-track { height: calc(var(--scroll-distance) + 100svh); }
+    .stage {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      overflow: hidden;
+      isolation: isolate;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(11, 13, 11, .16), transparent 28%, transparent 72%, rgba(11, 13, 11, .18)),
+        linear-gradient(0deg, rgba(8, 9, 8, .2), transparent 48%, rgba(8, 9, 8, .08)),
+        url("assets/shanghai-night-reference.jpg") center 54% / cover no-repeat,
+        #282920;
+    }
+    .stage::before, .stage::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+    .stage::before {
+      z-index: 4;
+      opacity: .22;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.3'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+    .stage::after {
+      z-index: 2;
+      background: linear-gradient(90deg, rgba(11, 13, 11, .72), transparent 29%, transparent 72%, rgba(11, 13, 11, .64)),
+                  linear-gradient(0deg, rgba(8, 9, 8, .4), transparent 44%, rgba(8, 9, 8, .1));
+    }
+    .film {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      left: -10px;
+      top: -10px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .film--backdrop {
+      z-index: 1;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 54%;
+      filter: blur(24px) saturate(1.08) brightness(.48);
+      opacity: .16;
+      transition: opacity .5s ease;
+    }
+    .hero-canvas {
+      position: fixed;
+      z-index: 6;
+      width: min(86svh, 42vw);
+      height: auto;
+      aspect-ratio: 720 / 704;
+      left: 52%;
+      top: 54%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      filter: drop-shadow(0 22px 60px rgba(0, 0, 0, .28));
+      opacity: 1;
+      transition: opacity .22s ease, width .3s ease;
+      will-change: contents;
+      pointer-events: none;
+    }
+    .hero-fallback {
+      position: fixed;
+      z-index: 6;
+      width: min(86svh, 42vw);
+      height: auto;
+      aspect-ratio: 720 / 704;
+      left: 52%;
+      top: 54%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      filter: drop-shadow(0 22px 60px rgba(0, 0, 0, .28));
+      opacity: 1;
+      transition: opacity .22s ease;
+      pointer-events: none;
+    }
+    body.hero-render-ready .hero-fallback,
+    body.is-resume .hero-fallback,
+    body.is-work .hero-fallback { opacity: 0; }
+    body.is-resume:not(.motion-ready) .hero-fallback,
+    body.is-work:not(.motion-ready) .hero-fallback { opacity: 1; z-index: 6.75; }
+    .hero-transition {
+      position: fixed;
+      z-index: 7;
+      width: min(86svh, 42vw);
+      height: auto;
+      aspect-ratio: 720 / 704;
+      left: 52%;
+      top: 54%;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity .18s cubic-bezier(.2,.7,.2,1);
+      pointer-events: none;
+      will-change: opacity;
+    }
+    .motion-canvas, .motion-transition {
+      position: fixed;
+      z-index: 6;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background:
+        radial-gradient(ellipse at 50% 49%, transparent 38%, rgba(37, 38, 52, .26) 100%),
+        radial-gradient(ellipse 31% 17% at 15% 24%, rgba(255,231,211,.54), rgba(255,210,184,.16) 48%, transparent 83%),
+        radial-gradient(ellipse 28% 15% at 72% 18%, rgba(255,235,215,.46), rgba(255,196,169,.14) 50%, transparent 84%),
+        radial-gradient(ellipse 38% 19% at 88% 43%, rgba(255,222,194,.32), rgba(255,185,156,.1) 54%, transparent 86%),
+        linear-gradient(180deg, #394c6a 0%, #786a7c 38%, #c47f78 69%, #efbd91 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s cubic-bezier(.2,.7,.2,1);
+      will-change: opacity;
+    }
+    body.is-resume .motion-canvas, body.is-work .motion-canvas { opacity: 1; }
+    .motion-transition { z-index: 6.5; }
+    body.is-work .motion-canvas, body.is-work .motion-transition {
+      background:
+        radial-gradient(ellipse at 50% 49%, transparent 38%, rgba(19, 42, 59, .2) 100%),
+        radial-gradient(ellipse 31% 17% at 15% 24%, rgba(255,255,255,.68), rgba(255,255,255,.22) 48%, transparent 83%),
+        radial-gradient(ellipse 28% 15% at 72% 18%, rgba(255,255,255,.62), rgba(255,255,255,.19) 50%, transparent 84%),
+        radial-gradient(ellipse 38% 19% at 88% 43%, rgba(255,255,255,.42), rgba(255,255,255,.14) 54%, transparent 86%),
+        linear-gradient(180deg, #4d9dce 0%, #78b9dc 42%, #bedce6 73%, #e8dfd0 100%);
+    }
+    body.is-resume.motion-ready .motion-canvas, body.is-work.motion-ready .motion-canvas { opacity: 1; }
+    body.is-resume.motion-ready .hero-canvas, body.is-work.motion-ready .hero-canvas { opacity: 0; }
+    body.is-resume.motion-ready .hero-transition, body.is-work.motion-ready .hero-transition { opacity: 0 !important; }
+    .film.is-active { opacity: 0; }
+    .scrim { position: absolute; z-index: 3; inset: 0; background: rgba(18, 20, 16, .08); pointer-events: none; }
+
+    .topbar {
+      position: fixed;
+      z-index: 8;
+      inset: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 29px clamp(22px, 4.3vw, 68px);
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+    .brand { width: max-content; color: var(--ink); font-size: 23px; font-weight: 750; letter-spacing: -.045em; text-decoration: none; }
+    .brand span { color: var(--gold); }
+    .nav { display: flex; gap: clamp(22px, 3vw, 50px); align-items: center; }
+    .nav a { position: relative; color: var(--ink); font-size: 10px; letter-spacing: .13em; text-decoration: none; opacity: .82; }
+    .nav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -7px; height: 1px; background: var(--gold); transition: right .25s; }
+    .nav a:hover::after, .nav a:focus-visible::after { right: 0; }
+    .top-note { justify-self: end; text-align: right; font-size: 10px; line-height: 1.9; letter-spacing: .04em; text-transform: none; color: rgba(247,244,233,.88); text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+    .top-note a { display: block; color: inherit; text-decoration: none; white-space: nowrap; transition: color .25s ease; }
+    .top-note a:hover { color: #f2c879; }
+    .top-note__label { display: inline-block; margin-right: 10px; font-size: 8px; letter-spacing: .18em; opacity: .6; }
+    @media (min-width: 761px) and (max-width: 1100px) { .top-note { font-size: 8.5px; } .top-note__label { font-size: 7px; margin-right: 7px; } }
+
+    .copy { position: fixed; z-index: 5; inset: 0; pointer-events: none; transition: opacity .5s ease, transform .5s ease; }
+    body.is-resume .copy, body.is-work .copy { opacity: 0; transform: translateY(-8px); }
+    .resume-layout {
+      position: fixed;
+      z-index: 7;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .7s ease;
+    }
+    body.is-resume .resume-layout { opacity: 1; }
+    .resume-heading {
+      position: absolute;
+      top: clamp(16px, 5.5vh, 54px);
+      left: clamp(24px, 4.5vw, 72px);
+      z-index: 2;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.7;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .resume-heading strong { display: block; color: var(--gold); font-size: 10px; font-weight: 600; }
+    .resume-panel {
+      position: absolute;
+      z-index: 2;
+      width: min(27vw, 355px);
+      padding: clamp(14px, 1.45vw, 22px);
+      border-left: 1px solid rgba(229,203,126,.62);
+      background: linear-gradient(100deg, rgba(18,20,17,.7), rgba(18,20,17,.24));
+      box-shadow: 0 12px 45px rgba(0,0,0,.12);
+      opacity: calc(var(--reveal, 0) * .96);
+      transform: translateY(calc((1 - var(--reveal, 0)) * 12px));
+      transition: opacity .18s linear, transform .18s linear;
+      backdrop-filter: blur(5px);
+    }
+    .resume-panel h2 { margin: 8px 0 14px; font-size: clamp(20px, min(2.5vw, 3.6vh), 34px); line-height: 1.15; letter-spacing: -.025em; }
+    .resume-panel p { margin: 0; color: rgba(247,244,233,.8); font-size: clamp(11px, .9vw, 13px); line-height: 1.7; }
+    .resume-panel .resume-kicker { color: var(--gold); font-size: clamp(9px, min(.95vw, 1.4vh), 11px); font-weight: 650; letter-spacing: .17em; text-transform: uppercase; }
+    .resume-panel--education { right: clamp(24px, 4.5vw, 72px); top: 38%; width: min(26vw, 380px); padding: clamp(22px, 2.1vw, 32px) clamp(18px, 1.7vw, 26px); }
+    .resume-panel--education h2 { margin: 10px 0 20px; }
+    .resume-panel--education .resume-entry { margin-top: 20px; padding-top: 18px; row-gap: 12px; }
+    .resume-panel--education .resume-entry time { line-height: 1.8; }
+    .resume-panel--education .resume-entry span { margin-top: 7px; line-height: 1.8; }
+    .resume-entry { position: relative; }
+    .resume-entry time, .resume-entry > div { position: relative; z-index: 1; }
+    .resume-entry__logo { position: absolute; z-index: 0; right: 0; top: 50%; width: clamp(64px, 5.5vw, 88px); height: auto; transform: translateY(-50%); opacity: .45; pointer-events: none; }
+    .resume-entry { display: grid; grid-template-columns: clamp(88px, 8vw, 120px) 1fr; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(247,244,233,.12); opacity: var(--entry-reveal, 0); transform: translateY(calc((1 - var(--entry-reveal, 0)) * 5px)); transition: opacity .16s linear, transform .16s linear; }
+    .resume-entry time { color: var(--gold); font-size: clamp(10px, min(1.05vw, 1.6vh), 13px); font-variant-numeric: tabular-nums; line-height: 1.6; }
+    .resume-entry strong { display: block; color: var(--ink); font-size: clamp(13px, min(1.4vw, 2vh), 18px); font-weight: 650; line-height: 1.4; }
+    .resume-entry span { display: block; margin-top: 5px; color: var(--muted); font-size: clamp(10.5px, min(1.15vw, 1.75vh), 14px); line-height: 1.6; }
+    .resume-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .resume-tags span { padding: 4px 7px; border: 1px solid rgba(247,244,233,.16); border-radius: 99px; color: rgba(247,244,233,.83); font-size: 9px; }
+    .resume-note { display: block; margin-top: 9px; color: rgba(247,244,233,.55); font-size: 8px; line-height: 1.55; }
+    .resume-timeline { position: absolute; z-index: 3; inset: 0; opacity: var(--reveal, 0); transition: opacity .18s linear; pointer-events: none; }
+    .timeline-col { position: absolute; left: clamp(24px, 4.5vw, 72px); right: 54%; top: clamp(58px, 13vh, 150px); bottom: clamp(48px, 10vh, 96px); display: flex; flex-direction: column; gap: clamp(12px, 2vh, 26px); }
+    .timeline-head { position: static; width: auto; flex: 0 0 auto; }
+    .timeline-head .resume-kicker { color: var(--gold); font-size: clamp(8px, min(.85vw, 1.3vh), 10px); font-weight: 650; letter-spacing: .17em; text-transform: uppercase; }
+    .timeline-words { margin: 14px 0 14px; font-size: clamp(26px, min(3.2vw, 5.4vh), 52px); line-height: .96; letter-spacing: -.05em; text-shadow: 0 6px 30px rgba(0,0,0,.35); }
+    .timeline-words span { display: block; }
+    .timeline-sub { color: rgba(247,244,233,.62); font-size: clamp(10px, min(1vw, 1.5vh), 13px); letter-spacing: .12em; }
+    .timeline-sub--item { display: block; margin-bottom: 10px; color: rgba(247,244,233,.85); text-shadow: 0 1px 8px rgba(0,0,0,.85); }
+    .timeline-stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+    .timeline-track { position: absolute; inset: 0; }
+    .timeline-item { position: absolute; inset: 0; opacity: 0; transform: translateY(100%); transition: transform .52s cubic-bezier(.22,.7,.25,1), opacity .32s ease; display: flex; flex-direction: column; justify-content: center; }
+    .timeline-year { display: block; color: var(--gold); font-size: clamp(32px, min(4.4vw, 7vh), 66px); font-weight: 650; letter-spacing: -.035em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,.95), 0 3px 16px rgba(0,0,0,.92), 0 0 48px rgba(0,0,0,.86); }
+    .timeline-org { display: block; margin-top: 12px; color: #ffffff; font-size: clamp(21px, min(3.1vw, 4.6vh), 46px); font-weight: 700; letter-spacing: -.025em; text-shadow: 0 1px 2px rgba(0,0,0,.95), 0 3px 16px rgba(0,0,0,.92), 0 0 42px rgba(0,0,0,.86); }
+    .timeline-role { display: block; margin-top: 8px; color: #ffe9a8; font-size: clamp(13px, min(1.7vw, 2.5vh), 22px); letter-spacing: .06em; text-shadow: 0 1px 2px rgba(0,0,0,.95), 0 2px 12px rgba(0,0,0,.92), 0 0 30px rgba(0,0,0,.8); }
+    .timeline-desc { max-width: none; margin: 16px 0 0; color: #ffffff; font-size: clamp(13px, min(1.7vw, 2.5vh), 22px); line-height: 1.7; text-shadow: 0 1px 2px rgba(0,0,0,.95), 0 2px 12px rgba(0,0,0,.92), 0 0 34px rgba(0,0,0,.85); }
+    .timeline-rail { position: relative; flex: 0 0 auto; margin-top: auto; }
+    .timeline-rail::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px; background: rgba(247,244,233,.24); }
+    .timeline-rail__dot { position: absolute; top: -1px; left: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 12px rgba(229,203,126,.85); transform: translateX(-50%); transition: left .3s ease; }
+    .timeline-ticks { position: absolute; left: 0; right: 0; top: 16px; display: flex; justify-content: space-between; color: rgba(247,244,233,.48); font-size: 8px; letter-spacing: .12em; }
+    .work-layout {
+      position: fixed;
+      z-index: 7;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .7s ease;
+    }
+    body.is-work .work-layout { opacity: 1; }
+    .work-intro { position: absolute; left: clamp(24px, 4.5vw, 72px); top: 20%; max-width: min(30vw, 410px); text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+    .work-intro h1 { margin: 15px 0 12px; font-size: clamp(42px, 6vw, 86px); line-height: .9; letter-spacing: -.055em; }
+    .work-intro p { max-width: 280px; margin: 0; color: rgba(247,244,233,.78); font-size: 12px; line-height: 1.8; }
+    .work-index { position: absolute; right: clamp(24px, 4.5vw, 72px); bottom: 12%; text-align: right; color: rgba(247,244,233,.82); font-size: 8px; letter-spacing: .17em; text-transform: uppercase; }
+    .work-index strong { display: block; margin-bottom: 7px; color: var(--gold); font-size: 10px; }
+    .work-docs { position: absolute; left: clamp(24px, 4.5vw, 72px); bottom: clamp(64px, 8vh, 84px); display: flex; align-items: center; gap: clamp(18px, 2vw, 34px); pointer-events: auto; z-index: 8; }
+    .work-doc { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; width: clamp(92px, 8vw, 132px); text-decoration: none; color: rgba(247,244,233,.92); font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+    .work-doc img { display: block; width: clamp(92px, 8vw, 132px); height: clamp(92px, 8vw, 132px); object-fit: contain; filter: saturate(1.05); transition: transform .34s cubic-bezier(.22,.7,.25,1), filter .34s ease; }
+    .work-doc:hover img, .work-doc:focus-visible img { transform: translateY(-6px) scale(1.08); filter: drop-shadow(0 0 20px rgba(255,106,58,.55)) brightness(1.12); }
+    .work-doc:hover span, .work-doc:focus-visible span { color: var(--gold); }
+    .work-doc span { height: 14px; line-height: 14px; white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 2px 12px rgba(0,0,0,.75); transition: color .3s ease; }
+    @media (min-width: 761px) {
+      .work-layout { --doc-icon: clamp(92px, 8vw, 132px); }
+      .work-intro { top: auto; bottom: calc(clamp(64px, 8vh, 84px) + var(--doc-icon) + 40px); display: block; max-width: min(38vw, 560px); }
+      .work-intro h1 { margin: 12px 0 0; font-size: clamp(40px, min(9vw, 12vh), 132px); line-height: .9; }
+      .work-intro p { margin: 18px 0 0; padding-top: 0; max-width: 340px; font-size: 13px; line-height: 1.7; }
+    }
+    @media (min-width: 761px) and (max-height: 620px) {
+      .work-docs { bottom: 64px; }
+    }
+    /* 第 3 页：视频播完停留 0.5s 后，三个图标同步从左到右淡入 */
+    .work-docs { opacity: 0; pointer-events: none; }
+    body.work-docs-in .work-docs { opacity: 1; pointer-events: auto; animation: workDocsReveal .95s cubic-bezier(.22,.7,.25,1) both; }
+    @keyframes workDocsReveal {
+      from { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateX(-30px); }
+      to { opacity: 1; clip-path: inset(0 0 0 0); transform: translateX(0); }
+    }
+    .eyebrow { font-size: 9px; line-height: 1.5; font-weight: 600; letter-spacing: .2em; color: var(--gold); text-transform: uppercase; }
+    .left-copy { position: absolute; left: clamp(24px, 4.5vw, 72px); top: 27%; width: min(34vw, 435px); }
+    .left-copy h1 {
+      margin: 19px 0 17px;
+      max-width: 7ch;
+      font-size: clamp(54px, 7.2vw, 112px);
+      line-height: .86;
+      letter-spacing: -.055em;
+      font-weight: 850;
+      text-transform: uppercase;
+      text-shadow: 0 2px 28px rgba(0,0,0,.22);
+    }
+    .left-copy h1 span { display: block; }
+    .intro { max-width: 350px; margin: 21px 0 25px; font-size: clamp(12px, 1vw, 14px); line-height: 1.95; letter-spacing: .04em; color: rgba(247,244,233,.9); }
+    .cta {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      min-height: 43px;
+      padding: 5px 6px 5px 19px;
+      border: 1px solid rgba(247,244,233,.25);
+      border-radius: 99px;
+      background: rgba(17,18,15,.48);
+      color: var(--ink);
+      font-family: inherit;
+      font-size: 11px;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+    .cta:hover { border-color: var(--gold); background: rgba(17,18,15,.72); transform: translateY(-2px); }
+    .cta-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #20211a; font-size: 17px; line-height: 1; }
+    .right-copy { position: absolute; right: clamp(24px, 4.5vw, 72px); top: 31%; width: min(21vw, 270px); text-align: right; }
+    .right-copy h2 { margin: 0 0 17px; font-size: clamp(18px, 2vw, 28px); letter-spacing: .02em; text-transform: uppercase; }
+    .right-copy p { margin: 0; font-size: 12px; line-height: 2; color: var(--muted); }
+    .chapter { position: absolute; right: clamp(24px, 4.5vw, 72px); bottom: 11%; text-align: right; }
+    .chapter strong { display: block; margin-bottom: 8px; font-size: 24px; letter-spacing: .02em; text-transform: uppercase; }
+    .chapter span { font-size: 8px; letter-spacing: .16em; color: var(--muted); }
+    .center-note {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      bottom: 7.7%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      color: rgba(247,244,233,.8);
+      white-space: nowrap;
+      font-size: 8px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .scroll-icon { display: grid; place-items: center; width: 24px; height: 34px; border: 1px solid rgba(247,244,233,.56); border-radius: 14px; }
+    .scroll-icon::after { content: ""; width: 2px; height: 6px; margin-top: -11px; border-radius: 2px; background: var(--gold); animation: nudge 1.2s ease-in-out infinite; }
+    @keyframes nudge { 0%,100% { transform: translateY(0); opacity: .45; } 50% { transform: translateY(8px); opacity: 1; } }
+    .progress {
+      position: fixed;
+      z-index: 9;
+      left: 50%;
+      bottom: 23px;
+      transform: translateX(-50%);
+      width: min(210px, 40vw);
+      height: 2px;
+      background: rgba(247,244,233,.25);
+    }
+    .progress-fill { width: 0; height: 100%; background: var(--gold); box-shadow: 0 0 12px rgba(229,203,126,.7); }
+    .progress-label { position: fixed; z-index: 9; right: clamp(22px,4.3vw,68px); bottom: 17px; color: rgba(247,244,233,.7); font-variant-numeric: tabular-nums; font-size: 9px; letter-spacing: .12em; }
+    .sound-note {
+      position: fixed; z-index: 12; left: clamp(24px,4.5vw,72px); top: 17vh; bottom: auto;
+      display: inline-flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 14px;
+      border: 1px solid rgba(229,203,126,.32); border-radius: 999px;
+      color: rgba(247,244,233,.76); background: rgba(18,20,16,.38); backdrop-filter: blur(12px);
+      font: inherit; font-size: 8px; letter-spacing: .14em; cursor: pointer;
+      transition: color .25s ease, border-color .25s ease, background .25s ease, transform .25s ease;
+    }
+    .sound-note:hover, .sound-note:focus-visible { color: var(--ink); border-color: rgba(229,203,126,.75); background: rgba(18,20,16,.68); outline: none; }
+    .sound-note:active { transform: scale(.97); }
+    body.is-resume .sound-note, body.is-work .sound-note { top: auto; bottom: 18px; }
+    .sound-note__icon { color: var(--gold); font-family: Georgia, serif; font-size: 17px; line-height: 1; }
+    .sound-note__hint { opacity: .54; }
+    .sound-note.is-playing .sound-note__icon { animation: music-pulse 1.8s ease-in-out infinite; }
+    @keyframes music-pulse { 0%,100% { transform: translateY(0); opacity: .72; } 50% { transform: translateY(-2px); opacity: 1; } }
+    .moment { transition: opacity .35s ease, transform .35s ease; }
+    .moment.is-hidden { opacity: 0; transform: translateY(8px); }
+    @media (max-width: 760px) {
+      .topbar { padding: max(20px, env(safe-area-inset-top)) 21px 14px; grid-template-columns: 1fr auto; }
+      .brand { font-size: 20px; }
+      .nav { grid-column: 2; grid-row: 1; gap: 17px; }
+      .nav a { font-size: 8px; }
+      .top-note { display: none; }
+      .hero-canvas, .hero-fallback, .hero-transition { top: 44px; left: 50%; width: min(100vw, 47svh); transform: translateX(-50%); }
+      .hero-canvas, .hero-fallback, .hero-transition {
+        will-change: auto;
+        filter: none;
+        transform: translateX(-50%) translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+      .motion-canvas, .motion-transition { top: 0; height: 100svh; }
+      .stage::after { background: linear-gradient(0deg, rgba(8,9,8,.3) 0%, rgba(8,9,8,.1) 48%, rgba(8,9,8,.18) 100%); }
+      .left-copy { top: auto; bottom: 7%; left: 23px; width: calc(100% - 46px); }
+      .left-copy h1 { max-width: none; font-size: clamp(26px, 7.2vw, 32px); margin: 8px 0 6px; }
+      .left-copy h1 span { display: inline; }
+      .left-copy h1 span + span::before { content: " "; }
+      .intro { max-width: 320px; margin: 8px 0 12px; font-size: 11px; }
+      .cta { min-height: 39px; font-size: 10px; }
+      .cta-mark { width: 27px; height: 27px; }
+      .right-copy { display: none; }
+      .eyebrow { font-size: 8px; }
+      .right-copy h2 { font-size: 18px; margin-bottom: 8px; }
+      .right-copy p { font-size: 10px; line-height: 1.8; }
+      .resume-heading { display: none; }
+      .resume-panel, .resume-panel--education, .resume-panel--results, .resume-panel--clients {
+        left: 30px; right: 20px; top: auto; bottom: 12%; width: auto;
+        padding: 15px 16px; background: rgba(18,20,17,.87); backdrop-filter: blur(9px);
+        opacity: 0; transform: translateY(10px); transition: opacity .24s ease, transform .24s ease;
+      }
+      .resume-panel.is-current { opacity: 1; transform: translateY(0); }
+      .resume-panel h2 { font-size: 20px; }
+      .resume-panel p { font-size: 11px; }
+      .resume-entry { display: none; grid-template-columns: 72px 1fr; margin-top: 7px; padding-top: 7px; }
+      .resume-entry.is-current { display: grid; opacity: 1; transform: none; }
+      .resume-panel--education .resume-entry { display: grid; }
+      .resume-entry strong { font-size: 10px; }
+      .resume-entry span { font-size: 9px; }
+      .resume-tags span { font-size: 9px; }
+      .resume-timeline { opacity: var(--reveal, 0); }
+      .timeline-col { left: 20px; right: 20px; top: 8%; bottom: auto; height: 44%; gap: 8px; }
+      .timeline-head { width: auto; }
+      .timeline-words { margin: 4px 0 5px; font-size: clamp(15px, 4.4vw, 21px); }
+      .timeline-head .resume-kicker { font-size: 7px; }
+      .timeline-sub { font-size: 8px; }
+      .timeline-stage { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+      .timeline-year { font-size: 16px; }
+      .timeline-org { margin-top: 3px; font-size: 14px; }
+      .timeline-role { margin-top: 2px; font-size: 9px; }
+      .timeline-desc { max-width: none; margin-top: 5px; font-size: 9px; line-height: 1.45; }
+      .timeline-rail { display: none; }
+      .bottom-copy { display: none; }
+      .work-intro { top: 51%; left: 23px; max-width: 70vw; }
+      .work-intro h1 { margin: 8px 0; font-size: clamp(32px, 9vw, 42px); }
+      .work-intro p { max-width: 260px; font-size: 10px; }
+      .work-index { right: 20px; bottom: 9%; font-size: 7px; }
+      .work-docs { left: 20px; bottom: 76px; gap: 14px; }
+      .work-doc img { width: 46px; height: 46px; }
+      .work-doc { width: 46px; font-size: 8px; gap: 6px; }
+      .chapter { display: none; }
+      .center-note { display: none; }
+      .progress { bottom: max(17px, env(safe-area-inset-bottom)); width: 135px; }
+      .progress-label { right: 19px; bottom: max(12px, env(safe-area-inset-bottom)); }
+      .sound-note { left: 16px; top: 56px; bottom: auto; min-height: 32px; gap: 7px; padding: 0 10px; font-size: 7px; }
+      .sound-note .sound-note__hint { display: none; }
+      body.is-resume .sound-note, body.is-work .sound-note { top: auto; bottom: max(13px, env(safe-area-inset-bottom)); }
+    }
+    @media (min-width: 761px) and (max-height: 600px) {
+      .hero-canvas, .hero-fallback, .hero-transition { width: min(68svh, 44vw); }
+      .resume-heading { display: none; }
+      .resume-panel:not(.resume-panel--education) { width: min(25vw, 330px); }
+      .timeline-words { font-size: clamp(22px, 2.6vw, 34px); }
+      .timeline-col { gap: 10px; top: 11%; bottom: 8%; }
+      .resume-panel--results, .resume-panel--clients { top: 70%; }
+      .resume-panel { padding: 12px 14px; }
+      .resume-panel--education { width: min(30vw, 320px); padding: 14px 16px; }
+      .resume-panel--education .resume-entry { margin-top: 12px; padding-top: 11px; }
+      .resume-panel h2 { margin: 6px 0 10px; font-size: 21px; }
+      .resume-panel p { font-size: 11px; line-height: 1.55; }
+      .resume-entry { grid-template-columns: 92px 1fr; gap: 8px; margin-top: 9px; padding-top: 8px; }
+      .resume-entry time { font-size: 10.5px; }
+      .resume-entry strong { font-size: 13px; }
+      .resume-entry span { font-size: 10.5px; line-height: 1.5; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+  </style>
+</head>
+<body>
+  <main class="scroll-track" aria-label="张辰望设计作品集首页">
+    <div class="stage" aria-hidden="true">
+      <video class="film film--backdrop" muted playsinline loop preload="auto" aria-hidden="true"></video>
+      <video class="film film--intro is-active" muted playsinline preload="auto" aria-hidden="true"></video>
+      <video class="film film--main" muted playsinline preload="auto" aria-hidden="true"></video>
+      <video class="film film--outro" muted playsinline preload="auto" aria-hidden="true"></video>
+      <video class="film film--resume-motion" muted playsinline preload="auto" aria-hidden="true"></video>
+      <video class="film film--work-motion" muted playsinline preload="none" aria-hidden="true"></video>
+      <div class="scrim"></div>
+    </div>
+  <canvas class="hero-canvas" id="heroCanvas" aria-label="根据鼠标方向切换真实表情帧的视频主视觉"></canvas>
+  <img class="hero-fallback" src="assets/portrait-center.webp" alt="" aria-hidden="true">
+  <canvas class="hero-transition" id="heroTransition" aria-hidden="true"></canvas>
+  <canvas class="motion-canvas" id="motionCanvas" aria-hidden="true"></canvas>
+  <canvas class="motion-transition" id="motionTransition" aria-hidden="true"></canvas>
+  </main>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="张辰望首页">Chenwang<span>.</span></a>
+    <nav class="nav" aria-label="主导航">
+      <a href="#top" data-scroll="0">初次见面</a>
+      <a href="#resume" data-scroll=".341">个人履历</a>
+      <a href="#work" data-scroll=".681">简历文件夹</a>
+    </nav>
+    <div class="top-note">
+      <a href="tel:+8613916698393"><span class="top-note__label">PHONE</span>+86 139 1669 8393</a>
+      <a href="mailto:285489702@qq.com"><span class="top-note__label">EMAIL</span>285489702@qq.com</a>
+      <a href="mailto:25065812g@connect.polyu.hk"><span class="top-note__label">POLYU EMAIL</span>25065812g@connect.polyu.hk</a>
+    </div>
+  </header>
+
+  <section class="copy" id="top" aria-label="首页介绍">
+    <div class="left-copy">
+      <div class="eyebrow">CHENWANG / DESIGN &amp; A LITTLE CURIOSITY</div>
+      <h1 class="moment" id="headline"><span>DESIGN</span><span>WITH</span><span>FEELING.</span></h1>
+      <p class="intro moment" id="intro">嗨，我是张辰望。<br>想了解我更多吗？下面几页有你想要的答案</p>
+      <a class="cta" href="#resume" data-scroll=".341"><span>继续向下探索</span><span class="cta-mark" aria-hidden="true">↗</span></a>
+    </div>
+    <aside class="right-copy moment" id="side-copy">
+      <h2>A CURIOUS MIND.</h2>
+      <p>热爱生活，忠于创意，致每一个点开的人<br>一张纸的形式似乎差点什么？<br>简历更像一件作品，而不是流程<br>希望通过网页能够更加了解我</p>
+    </aside>
+    <div class="chapter moment" id="chapter"><strong>HELLO, YOU.</strong><span>LOOKING AT YOU · 001</span></div>
+  </section>
+
+  <div class="resume-layout" id="resume" aria-label="个人履历">
+    <div class="resume-heading"><strong>CHENWANG / PROFILE</strong>SCROLL TO FOLLOW THE STORY</div>
+    <article class="resume-panel resume-panel--education" data-reveal="-.05">
+      <span class="resume-kicker">02 / EDUCATION</span><h2>教育经历</h2>
+      <div class="resume-entry" data-entry-reveal=".17"><time>2020.07—2024.07</time><div><strong>上海电力大学</strong><span>机械电子工程 · 学士 · GPA 3.12 / 4.0</span></div><img class="resume-entry__logo" src="assets/icons/logo-suep.png" alt="" aria-hidden="true"></div>
+      <div class="resume-entry" data-entry-reveal=".23"><time>2025.07—2027.03</time><div><strong>香港理工大学</strong><span>电动汽车 · 硕士（预计） · GPA 3.4 / 4.0</span></div><img class="resume-entry__logo" src="assets/icons/logo-polyu.png" alt="" aria-hidden="true"></div>
+    </article>
+    <section class="resume-timeline" aria-label="工作经历">
+      <div class="timeline-col">
+      <div class="timeline-head">
+        <span class="resume-kicker">02 / EXPERIENCE</span>
+        <h2 class="timeline-words"><span>BUILD.</span><span>ANALYSE.</span><span>INVEST.</span></h2>
+      </div>
+      <div class="timeline-stage">
+        <div class="timeline-track">
+        <div class="timeline-item" data-exp-item="0">
+          <span class="timeline-sub timeline-sub--item">工作经历</span>
+          <span class="timeline-year">2021.07—08</span>
+          <strong class="timeline-org">浙江振华开关</strong>
+          <span class="timeline-role">机械工程师助理</span>
+          <p class="timeline-desc">使用 SolidWorks 建模与装配检查，校对生产图纸。</p>
+        </div>
+        <div class="timeline-item" data-exp-item="1">
+          <span class="timeline-sub timeline-sub--item">工作经历</span>
+          <span class="timeline-year">2024.02—04</span>
+          <strong class="timeline-org">普华永道上海</strong>
+          <span class="timeline-role">ESG 实习生</span>
+          <p class="timeline-desc">参与能源与制造业客户调研、碳核算及双语报告。</p>
+        </div>
+        <div class="timeline-item" data-exp-item="2">
+          <span class="timeline-sub timeline-sub--item">工作经历</span>
+          <span class="timeline-year">2024.09—2025.02</span>
+          <strong class="timeline-org">新黎明科技</strong>
+          <span class="timeline-role">技术部实习生</span>
+          <p class="timeline-desc">整理 AutoCAD 图纸、维护 BOM，并协助处理装配偏差。</p>
+        </div>
+        <div class="timeline-item" data-exp-item="3">
+          <span class="timeline-sub timeline-sub--item">工作经历</span>
+          <span class="timeline-year">2026.06—至今</span>
+          <strong class="timeline-org">Brizan Venture</strong>
+          <span class="timeline-role">项目管理与投资战略实习生</span>
+          <p class="timeline-desc">参与黑客松与比赛筹备<br>赛后项目挖掘与数据分析<br>投资战略方向的指引与规划</p>
+        </div>
+        </div>
+      </div>
+      <div class="timeline-rail" aria-hidden="true">
+        <span class="timeline-rail__dot"></span>
+        <div class="timeline-ticks"><span>2021</span><span>2024</span><span>2025</span><span>2026</span></div>
+      </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="work-layout" aria-label="简历文件夹">
+    <div class="work-intro"><span class="eyebrow">03 / WORK INDEX</span><h1>WORKS<br>IN<br>MOTION.</h1><p>下面有简历、CV，还有推荐信，点击获得文件</p></div>
+    <div class="work-docs" aria-label="材料下载">
+      <a class="work-doc" href="assets/docs/cv-cn.html" target="_blank" rel="noopener" title="预览并下载中文简历"><img src="assets/icons/badge-cv-cn-512.png" alt="中文简历" width="512" height="512"><span>简历</span></a>
+      <a class="work-doc" href="assets/docs/cv-en.html" target="_blank" rel="noopener" title="预览并下载英文 CV"><img src="assets/icons/badge-cv-512.png" alt="英文版 CV" width="512" height="512"><span>CV</span></a>
+      <a class="work-doc" href="assets/docs/reference-letter.html" target="_blank" rel="noopener" title="预览并下载教授推荐信"><img src="assets/icons/badge-letter-512.png" alt="教授推荐信" width="512" height="512"><span>推荐信</span></a>
+    </div>
+    <div class="work-index"><strong>简历文件夹</strong>SCROLL TO RETURN · 03</div>
+  </section>
+
+  <div class="center-note" aria-hidden="true"><span class="scroll-icon"></span><span>下滑探索更多</span></div>
+  <button class="sound-note" id="musicToggle" type="button" aria-pressed="false" aria-label="开启背景音乐">
+    <span class="sound-note__icon" aria-hidden="true">♫</span>
+    <span class="sound-note__label">MUSIC OFF</span>
+    <span class="sound-note__hint">CLICK TO PLAY</span>
+  </button>
+  <div class="progress" role="progressbar" aria-label="影片播放进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill"></div></div>
+  <div class="progress-label">00 — 00</div>
+
+  <script>
+    (() => {
+      history.scrollRestoration = "manual";
+      window.scrollTo(0, 0);
+      const source = "assets/chenwang-hero.mp4";
+      const backdropSource = "assets/homepage-directions.mp4";
+      const backdrop = document.querySelector(".film--backdrop");
+      const intro = document.querySelector(".film--intro");
+      const main = document.querySelector(".film--main");
+      const outro = document.querySelector(".film--outro");
+      const resumeMotion = document.querySelector(".film--resume-motion");
+      const workMotion = document.querySelector(".film--work-motion");
+      workMotion.preload = "none";
+      const films = [intro, main, outro];
+      const motionFilms = { resume: resumeMotion, work: workMotion };
+      backdrop.src = backdropSource;
+      backdrop.load();
+      backdrop.play().catch(() => {});
+      films.forEach(video => { video.src = source; video.load(); });
+      resumeMotion.src = "assets/resume-motion-composited.mp4";
+      workMotion.src = "assets/portrait-motion-composited.mp4";
+      resumeMotion.load();
+      const canvas = document.querySelector("#heroCanvas");
+      const motionCanvas = document.querySelector("#motionCanvas");
+      const transitionCanvas = document.querySelector("#heroTransition");
+      const motionTransitionCanvas = document.querySelector("#motionTransition");
+      const motionTransitionContext = motionTransitionCanvas.getContext("2d");
+      const motionSourceCanvas = document.createElement("canvas");
+      const motionSourceContext = motionSourceCanvas.getContext("2d", { alpha: false, desynchronized: true });
+      let motionScene = null;
+      let motionVideoCallback = null;
+      let motionPlayPending = null;
+      const motionPlayAttempts = new WeakMap();
+      const transitionContext = transitionCanvas.getContext("2d");
+      const previousLayer = document.createElement("canvas");
+      const previousContext = previousLayer.getContext("2d");
+      const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false, antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+
+      const fill = document.querySelector(".progress-fill");
+      const bar = document.querySelector(".progress");
+      const label = document.querySelector(".progress-label");
+      const track = document.querySelector(".scroll-track");
+      const musicToggle = document.querySelector("#musicToggle");
+      const musicLabel = musicToggle.querySelector(".sound-note__label");
+      const musicHint = musicToggle.querySelector(".sound-note__hint");
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      // 若放置 assets/music/trip-v2.mp3，则优先播放该曲；缺文件时自动回落到合成氛围音。
+      const trackElement = new Audio();
+      trackElement.loop = true;
+      trackElement.preload = "none";
+      trackElement.volume = .72;
+      const trackSource = "assets/music/trip-v2.mp3";
+      let trackState = "unknown";
+      const loadTrack = () => {
+        if (trackState === "ready" || trackState === "missing") return Promise.resolve(trackState === "ready");
+        if (trackState === "loading") {
+          return new Promise(resolve => {
+            const timer = window.setInterval(() => {
+              if (trackState !== "loading") { window.clearInterval(timer); resolve(trackState === "ready"); }
+            }, 200);
+          });
+        }
+        trackState = "loading";
+        return new Promise(resolve => {
+          const done = result => {
+            trackElement.removeEventListener("canplay", onCanPlay);
+            trackElement.removeEventListener("error", onError);
+            trackState = result ? "ready" : "missing";
+            resolve(result);
+          };
+          const onCanPlay = () => done(true);
+          const onError = () => done(false);
+          trackElement.addEventListener("canplay", onCanPlay, { once: true });
+          trackElement.addEventListener("error", onError, { once: true });
+          trackElement.src = trackSource;
+          trackElement.load();
+          window.setTimeout(() => done(trackElement.readyState >= 2), 6000);
+        });
+      };
+      let musicContext = null;
+      let musicMaster = null;
+      let musicTimer = null;
+      let musicChordIndex = 0;
+      let musicIsPlaying = false;
+      let musicStarting = false;
+      const musicChords = [
+        { pad: [146.83, 220.00, 277.18, 369.99], melody: [493.88, 440.00, 369.99] },
+        { pad: [123.47, 185.00, 220.00, 293.66], melody: [440.00, 369.99, 329.63] },
+        { pad: [98.00, 146.83, 185.00, 246.94], melody: [392.00, 369.99, 293.66] },
+        { pad: [110.00, 164.81, 220.00, 277.18], melody: [440.00, 415.30, 329.63] }
+      ];
+      const buildMusicContext = () => {
+        if (!AudioContextClass || musicContext) return;
+        musicContext = new AudioContextClass();
+        musicMaster = musicContext.createGain();
+        musicMaster.gain.value = 0;
+        musicMaster.connect(musicContext.destination);
+      };
+      const musicTempo = 96;
+      const musicBeat = 60 / musicTempo;
+      const scheduleMusicChord = (index, startAt) => {
+        if (!musicContext || !musicMaster) return;
+        const chord = musicChords[index];
+        const duration = 8.4;
+        chord.pad.forEach((frequency, noteIndex) => {
+          [[0, .008], [5, .002]].forEach(([detune, volume]) => {
+            const oscillator = musicContext.createOscillator();
+            const voice = musicContext.createGain();
+            oscillator.type = detune ? "triangle" : "sine";
+            oscillator.frequency.value = frequency;
+            oscillator.detune.value = detune + (noteIndex % 2 ? 2 : -2);
+            voice.gain.setValueAtTime(.0001, startAt);
+            voice.gain.linearRampToValueAtTime(volume, startAt + 1.5);
+            voice.gain.setValueAtTime(volume, startAt + duration - .9);
+            voice.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
+            oscillator.connect(voice);
+            voice.connect(musicMaster);
+            oscillator.start(startAt);
+            oscillator.stop(startAt + duration + .03);
+          });
+        });
+        const arpNotes = [chord.pad[1], chord.pad[2], chord.melody[0], chord.pad[3], chord.melody[1], chord.pad[2], chord.melody[0], chord.melody[2]];
+        let arpStep = 0;
+        for (let offset = 0; offset < duration - musicBeat; offset += musicBeat / 2) {
+          const frequency = arpNotes[arpStep % arpNotes.length];
+          const pluckStart = startAt + offset + .02;
+          const oscillator = musicContext.createOscillator();
+          const voice = musicContext.createGain();
+          const tone = musicContext.createBiquadFilter();
+          oscillator.type = "triangle";
+          oscillator.frequency.value = frequency;
+          tone.type = "lowpass";
+          tone.frequency.value = 3200;
+          tone.Q.value = .7;
+          const accent = arpStep % 4 === 0;
+          voice.gain.setValueAtTime(.0001, pluckStart);
+          voice.gain.linearRampToValueAtTime(accent ? .016 : .0092, pluckStart + .012);
+          voice.gain.exponentialRampToValueAtTime(.0001, pluckStart + .46);
+          oscillator.connect(tone);
+          tone.connect(voice);
+          voice.connect(musicMaster);
+          oscillator.start(pluckStart);
+          oscillator.stop(pluckStart + .5);
+          arpStep++;
+        }
+        for (let offset = 0; offset < duration - musicBeat; offset += musicBeat) {
+          const bassStart = startAt + offset + .05;
+          const oscillator = musicContext.createOscillator();
+          const voice = musicContext.createGain();
+          const tone = musicContext.createBiquadFilter();
+          oscillator.type = "sine";
+          oscillator.frequency.value = chord.pad[0] / 2;
+          tone.type = "lowpass";
+          tone.frequency.value = 320;
+          voice.gain.setValueAtTime(.0001, bassStart);
+          voice.gain.linearRampToValueAtTime(.02, bassStart + .06);
+          voice.gain.exponentialRampToValueAtTime(.0001, bassStart + musicBeat * 1.1);
+          oscillator.connect(tone);
+          tone.connect(voice);
+          voice.connect(musicMaster);
+          oscillator.start(bassStart);
+          oscillator.stop(bassStart + musicBeat * 1.2);
+        }
+      };
+      const setMusicPlaying = async (playing) => {
+        if (playing && (musicIsPlaying || musicStarting)) return;
+        if (!playing && !musicIsPlaying) return;
+        if (playing) {
+          musicStarting = true;
+          const hasTrack = await loadTrack();
+          if (hasTrack) {
+            try { await trackElement.play(); } catch (_) { trackState = "missing"; }
+            if (trackState === "ready") {
+              musicIsPlaying = true;
+              musicStarting = false;
+              musicToggle.classList.add("is-playing");
+              musicToggle.setAttribute("aria-pressed", "true");
+              musicToggle.setAttribute("aria-label", "关闭背景音乐");
+              musicLabel.textContent = "MUSIC ON";
+              musicHint.textContent = "TRIP";
+              return;
+            }
+          }
+          if (!AudioContextClass) {
+            musicStarting = false;
+            musicHint.textContent = "AUDIO UNAVAILABLE";
+            musicToggle.disabled = true;
+            return;
+          }
+          buildMusicContext();
+          try { await musicContext.resume(); } catch (_) { musicStarting = false; return; }
+          musicMaster.gain.cancelScheduledValues(musicContext.currentTime);
+          musicMaster.gain.setTargetAtTime(.72, musicContext.currentTime, .45);
+          if (!musicIsPlaying) {
+            musicChordIndex = 0;
+            scheduleMusicChord(musicChordIndex, musicContext.currentTime + .12);
+            musicTimer = window.setInterval(() => {
+              if (!musicIsPlaying) return;
+              musicChordIndex = (musicChordIndex + 1) % musicChords.length;
+              scheduleMusicChord(musicChordIndex, musicContext.currentTime + .08);
+            }, 7200);
+          }
+          musicIsPlaying = true;
+          musicStarting = false;
+          musicToggle.classList.add("is-playing");
+          musicToggle.setAttribute("aria-pressed", "true");
+          musicToggle.setAttribute("aria-label", "关闭背景音乐");
+          musicLabel.textContent = "MUSIC ON";
+          musicHint.textContent = "CLICK TO MUTE";
+        } else {
+          musicIsPlaying = false;
+          if (trackElement) {
+            trackElement.pause();
+            trackElement.currentTime = 0;
+          }
+          if (musicTimer) { window.clearInterval(musicTimer); musicTimer = null; }
+          if (musicContext && musicMaster) {
+            musicMaster.gain.cancelScheduledValues(musicContext.currentTime);
+            musicMaster.gain.setTargetAtTime(0, musicContext.currentTime, .12);
+          }
+          musicToggle.classList.remove("is-playing");
+          musicToggle.setAttribute("aria-pressed", "false");
+          musicToggle.setAttribute("aria-label", "开启背景音乐");
+          musicLabel.textContent = "MUSIC OFF";
+          musicHint.textContent = "CLICK TO PLAY";
+        }
+      };
+      musicToggle.addEventListener("click", () => setMusicPlaying(!musicIsPlaying));
+      const resumePanels = [...document.querySelectorAll(".resume-panel")];
+      const resumePanelStarts = resumePanels.map(panel => Number(panel.dataset.reveal));
+      const resumeEntries = [...document.querySelectorAll("[data-entry-reveal]")];
+      const timelineDot = document.querySelector(".timeline-rail__dot");
+      const timelineStage = document.querySelector(".timeline-stage");
+      let lastExpIndex = -1;
+      window.addEventListener("resize", () => { lastExpIndex = -1; }, { passive: true });
+      const prefersReduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const coarsePointer = matchMedia("(pointer: coarse)").matches;
+      const pixelRatioCap = coarsePointer ? 1.5 : 2;
+      const renderRatio = () => Math.min(window.devicePixelRatio || 1, pixelRatioCap);
+      let poseScratch = null;
+      let poseScratchKey = "";
+      let duration = 1;
+      let progress = 0;
+      const RESUME_START = .341;
+      const WORK_START = .681;
+      const RESUME_SPAN = WORK_START - RESUME_START;
+      let frame = 0;
+      let ready = 0;
+      let activeChapter = -1;
+      let activeFilm = null;
+      let activePose = "center";
+      let poseStarted = performance.now();
+      let resumeFrameIndex = null;
+      let resumeMode = false;
+      let lastTextureSource = null;
+      const poseFrames = {
+        center: { image: new Image(), grid: [1, 1], count: 1 },
+        left: { image: new Image(), grid: [4, 2], start: 0, count: 1, zoom: 1.067, offset: [-0.0096, 0.0298] },
+        right: { image: new Image(), grid: [1, 1], count: 1 },
+        up: { image: new Image(), grid: [1, 1], count: 1 },
+        down: { image: new Image(), grid: [4, 2], start: 0, count: 1, zoom: 1.067, offset: [-0.0090, 0.0283] }
+      };
+      poseFrames.center.image.src = "assets/portrait-center.webp";
+      poseFrames.right.image.src = "assets/portrait-right.webp";
+      poseFrames.up.image.src = "assets/portrait-up.webp";
+      poseFrames.left.image.src = "assets/keyframes/left-cutout.webp";
+      poseFrames.down.image.src = "assets/keyframes/down-cutout.webp";
+      let texture = null;
+      let uniforms = null;
+      let locations = null;
+
+      if (gl) {
+        const vertexSource = `
+          attribute vec2 a_position;
+          attribute vec2 a_uv;
+          varying vec2 v_uv;
+          void main() { gl_Position = vec4(a_position, 0.0, 1.0); v_uv = a_uv; }
+        `;
+        const fragmentSource = `
+          precision mediump float;
+          varying vec2 v_uv;
+          uniform sampler2D u_video;
+          uniform vec2 u_cover;
+          uniform vec2 u_poseOffset;
+          uniform vec2 u_texel;
+          uniform vec2 u_frameGrid;
+          uniform float u_frameIndex;
+          uniform float u_frameNext;
+          uniform float u_frameBlend;
+          uniform float u_cutout;
+          vec2 atlasUV(vec2 uv, float index) {
+            vec2 cell = vec2(mod(index, u_frameGrid.x), floor(index / u_frameGrid.x));
+            return (clamp(uv, vec2(0.002), vec2(0.998)) + cell) / u_frameGrid;
+          }
+          vec3 sourcePixel(vec2 uv) {
+            return mix(texture2D(u_video, atlasUV(uv, u_frameIndex)).rgb, texture2D(u_video, atlasUV(uv, u_frameNext)).rgb, u_frameBlend);
+          }
+          float sourceAlphaAt(vec2 uv) {
+            return mix(texture2D(u_video, atlasUV(uv, u_frameIndex)).a, texture2D(u_video, atlasUV(uv, u_frameNext)).a, u_frameBlend);
+          }
+          void main() {
+            vec2 uv = (v_uv - 0.5) * u_cover + 0.5 + u_poseOffset;
+            vec2 sampleUV = clamp(uv, vec2(0.002), vec2(0.998));
+            vec3 center = sourcePixel(sampleUV);
+            float sourceAlpha = mix(texture2D(u_video, atlasUV(sampleUV, u_frameIndex)).a, texture2D(u_video, atlasUV(sampleUV, u_frameNext)).a, u_frameBlend);
+            vec3 color = center;
+            float foreground = sourceAlpha;
+            if (u_cutout < 0.5) {
+              vec3 keyColor = (sourcePixel(vec2(0.025, 0.025)) + sourcePixel(vec2(0.975, 0.025))) * 0.5;
+              float keyAlpha = smoothstep(0.09, 0.21, distance(center, keyColor));
+              foreground = keyAlpha;
+              vec3 nearby = (sourcePixel(sampleUV + vec2(u_texel.x, 0.0)) + sourcePixel(sampleUV - vec2(u_texel.x, 0.0)) + sourcePixel(sampleUV + vec2(0.0, u_texel.y)) + sourcePixel(sampleUV - vec2(0.0, u_texel.y))) * 0.25;
+              color = clamp(center + (center - nearby) * 0.34, 0.0, 1.0);
+            } else {
+              vec2 edgeStep = u_texel * 1.5;
+              vec2 leftUV = sampleUV - vec2(edgeStep.x, 0.0);
+              vec2 rightUV = sampleUV + vec2(edgeStep.x, 0.0);
+              vec2 upUV = sampleUV - vec2(0.0, edgeStep.y);
+              vec2 downUV = sampleUV + vec2(0.0, edgeStep.y);
+              float alphaLeft = sourceAlphaAt(leftUV);
+              float alphaRight = sourceAlphaAt(rightUV);
+              float alphaUp = sourceAlphaAt(upUV);
+              float alphaDown = sourceAlphaAt(downUV);
+              float edgeExposure = 1.0 - min(min(alphaLeft, alphaRight), min(alphaUp, alphaDown));
+              float matteLuma = dot(center, vec3(0.299, 0.587, 0.114));
+              float matteChroma = max(max(center.r, center.g), center.b) - min(min(center.r, center.g), center.b);
+              float paleFringe = smoothstep(0.76, 0.94, matteLuma) * (1.0 - smoothstep(0.05, 0.19, matteChroma)) * smoothstep(0.18, 0.68, edgeExposure);
+              float innerLeft = smoothstep(0.48, 0.94, alphaLeft);
+              float innerRight = smoothstep(0.48, 0.94, alphaRight);
+              float innerUp = smoothstep(0.48, 0.94, alphaUp);
+              float innerDown = smoothstep(0.48, 0.94, alphaDown);
+              float innerWeight = max(0.001, innerLeft + innerRight + innerUp + innerDown);
+              vec3 innerColor = (sourcePixel(leftUV) * innerLeft + sourcePixel(rightUV) * innerRight + sourcePixel(upUV) * innerUp + sourcePixel(downUV) * innerDown) / innerWeight;
+              color = mix(center, innerColor, paleFringe * 0.82);
+              foreground *= 1.0 - paleFringe * 0.88;
+              float edgeSpill = max(0.0, color.g - max(color.r, color.b));
+              float spillMask = smoothstep(0.002, 0.035, edgeSpill) * (1.0 - smoothstep(0.65, 0.96, sourceAlpha));
+              color.g = mix(color.g, min(color.g, max(color.r, color.b) + 0.003), spillMask);
+              if (u_frameGrid.x < 1.5 && sampleUV.x > 0.62) {
+                vec2 horizontalStep = vec2(u_texel.x * 28.0, 0.0);
+                vec2 verticalStep = vec2(0.0, u_texel.y * 7.0);
+                vec2 farLeftUV = sampleUV - horizontalStep;
+                vec2 farRightUV = sampleUV + horizontalStep;
+                float horizontalCoverage = min(sourceAlphaAt(farLeftUV), sourceAlphaAt(farRightUV));
+                float verticalCoverage = max(sourceAlphaAt(sampleUV - verticalStep), sourceAlphaAt(sampleUV + verticalStep));
+                float horizontalVariation = max(distance(center, sourcePixel(farLeftUV)), distance(center, sourcePixel(farRightUV)));
+                float flatRun = 1.0 - smoothstep(0.018, 0.11, horizontalVariation);
+                float strayLine = smoothstep(0.78, 0.96, horizontalCoverage) * (1.0 - smoothstep(0.12, 0.50, verticalCoverage)) * flatRun;
+                foreground *= 1.0 - strayLine * 0.98;
+              }
+            }
+            gl_FragColor = vec4(clamp(color, 0.0, 1.0), foreground);
+          }
+        `;
+        const compile = (type, sourceText) => {
+          const shader = gl.createShader(type);
+          gl.shaderSource(shader, sourceText);
+          gl.compileShader(shader);
+          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || "shader compile failed");
+          return shader;
+        };
+        try {
+          const program = gl.createProgram();
+          gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+          gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+          gl.linkProgram(program);
+          if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) || "shader link failed");
+          gl.useProgram(program);
+          const vertices = new Float32Array([
+            -1, 1, 0, 0,  1, 1, 1, 0,  -1, -1, 0, 1,
+            -1, -1, 0, 1,  1, 1, 1, 0,  1, -1, 1, 1
+          ]);
+          const buffer = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+          gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+          const position = gl.getAttribLocation(program, "a_position");
+          const uv = gl.getAttribLocation(program, "a_uv");
+          gl.enableVertexAttribArray(position);
+          gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 16, 0);
+          gl.enableVertexAttribArray(uv);
+          gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 16, 8);
+          texture = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, texture);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          uniforms = {
+            video: gl.getUniformLocation(program, "u_video"),
+            cover: gl.getUniformLocation(program, "u_cover"),
+            poseOffset: gl.getUniformLocation(program, "u_poseOffset"),
+            texel: gl.getUniformLocation(program, "u_texel"),
+            frameGrid: gl.getUniformLocation(program, "u_frameGrid"),
+            frameIndex: gl.getUniformLocation(program, "u_frameIndex"),
+            frameNext: gl.getUniformLocation(program, "u_frameNext"),
+            frameBlend: gl.getUniformLocation(program, "u_frameBlend"),
+            cutout: gl.getUniformLocation(program, "u_cutout")
+          };
+          locations = { program };
+        } catch (error) {
+          console.warn("Enhanced video rendering unavailable; using the source video.", error);
+        }
+      }
+
+      const render = () => {
+        const video = activeFilm || intro;
+        const pose = activePose && poseFrames[activePose];
+        const poseIsReady = pose && pose.image.complete && pose.image.naturalWidth;
+        const source = poseIsReady ? pose.image : video;
+        const grid = poseIsReady ? pose.grid : [1, 1];
+        const elapsed = poseIsReady ? Math.max(0, performance.now() - poseStarted) : 0;
+        const poseFramePosition = poseIsReady
+          ? (resumeMode && resumeFrameIndex !== null && ["left", "down"].includes(activePose)
+            ? Math.max(0, Math.min(pose.count - 1, resumeFrameIndex))
+            : Math.min(pose.count - 1, elapsed / 150))
+          : 0;
+        const frameIndex = poseIsReady ? (pose.start || 0) + Math.floor(poseFramePosition) : 0;
+        const frameNext = poseIsReady ? (pose.start || 0) + Math.min(pose.count - 1, Math.floor(poseFramePosition) + 1) : 0;
+        const frameBlend = poseIsReady ? poseFramePosition - Math.floor(poseFramePosition) : 0;
+        const sourceReady = poseIsReady || (video.readyState >= 2 && video.videoWidth);
+        if (gl && locations && sourceReady) {
+          const bounds = canvas.getBoundingClientRect();
+          const ratio = renderRatio();
+          const width = Math.max(1, Math.round(bounds.width * ratio));
+          const height = Math.max(1, Math.round(bounds.height * ratio));
+          if (canvas.width !== width || canvas.height !== height) {
+            canvas.width = width;
+            canvas.height = height;
+            gl.viewport(0, 0, width, height);
+          }
+          try {
+            gl.useProgram(locations.program);
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            const texMax = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
+            let uploadSource = source;
+            let uploadWidth = poseIsReady ? source.naturalWidth : source.videoWidth;
+            let uploadHeight = poseIsReady ? source.naturalHeight : source.videoHeight;
+            if (uploadWidth && uploadHeight && (uploadWidth > texMax || uploadHeight > texMax)) {
+              const shrink = Math.min(texMax / uploadWidth, texMax / uploadHeight);
+              const targetWidth = Math.max(1, Math.floor(uploadWidth * shrink));
+              const targetHeight = Math.max(1, Math.floor(uploadHeight * shrink));
+              const scratchKey = uploadWidth + "x" + uploadHeight + ">" + targetWidth + "x" + targetHeight;
+              if (!poseScratch || poseScratchKey !== scratchKey) {
+                if (!poseScratch) poseScratch = document.createElement("canvas");
+                poseScratch.width = targetWidth;
+                poseScratch.height = targetHeight;
+                const scratchContext = poseScratch.getContext("2d");
+                scratchContext.clearRect(0, 0, targetWidth, targetHeight);
+                scratchContext.drawImage(source, 0, 0, targetWidth, targetHeight);
+                poseScratchKey = scratchKey;
+              }
+              uploadSource = poseScratch;
+              uploadWidth = targetWidth;
+              uploadHeight = targetHeight;
+            }
+            if (source !== lastTextureSource || source === video) {
+              gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, uploadSource);
+              lastTextureSource = source;
+            }
+            const sourceWidth = poseIsReady ? uploadWidth / grid[0] : source.videoWidth;
+            const sourceHeight = poseIsReady ? uploadHeight / grid[1] : source.videoHeight;
+            const sourceAspect = sourceWidth / sourceHeight;
+            const canvasAspect = width / height;
+            const cover = sourceAspect > canvasAspect ? [canvasAspect / sourceAspect, 1] : [1, sourceAspect / canvasAspect];
+            gl.uniform1i(uniforms.video, 0);
+            const zoom = poseIsReady ? (pose.zoom || 1) : 1;
+            gl.uniform2f(uniforms.cover, cover[0] / zoom, cover[1] / zoom);
+            const poseOffset = poseIsReady && pose.offset ? pose.offset : [0, 0];
+            gl.uniform2f(uniforms.poseOffset, poseOffset[0], poseOffset[1]);
+            gl.uniform2f(uniforms.texel, 1 / sourceWidth, 1 / sourceHeight);
+            gl.uniform2f(uniforms.frameGrid, grid[0], grid[1]);
+            gl.uniform1f(uniforms.frameIndex, frameIndex);
+            gl.uniform1f(uniforms.frameNext, frameNext);
+            gl.uniform1f(uniforms.frameBlend, frameBlend);
+            gl.uniform1f(uniforms.cutout, poseIsReady ? 1 : 0);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            document.body.classList.add("hero-render-ready");
+          } catch (_) {}
+        }
+        requestAnimationFrame(render);
+      };
+      requestAnimationFrame(render);
+
+      const motionGL = motionCanvas.getContext("webgl", { alpha: true, premultipliedAlpha: false, antialias: true, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+      let motionProgram = null;
+      let motionTexture = null;
+      let motionUniforms = null;
+      let motionReady = false;
+      let motionFrameNeedsUpdate = true;
+      let motionDrawScheduled = false;
+      const scheduleMotionDraw = () => {
+        if (motionDrawScheduled) return;
+        motionDrawScheduled = true;
+        requestAnimationFrame(drawMotionFrame);
+      };
+      const requestMotionVideoFrame = video => {
+        if (!video || motionFilms[motionScene] !== video || video.paused || video.ended) return;
+        if (typeof video.requestVideoFrameCallback === "function") {
+          motionVideoCallback = video.requestVideoFrameCallback(() => {
+            motionFrameNeedsUpdate = true;
+            scheduleMotionDraw();
+            requestMotionVideoFrame(video);
+          });
+        }
+      };
+      const startMotionClip = video => {
+        if (!video || motionFilms[motionScene] !== video || video.readyState < 2 || video.ended || !video.paused || motionPlayPending === video) return;
+        const attempts = motionPlayAttempts.get(video) || 0;
+        if (attempts >= 3) return;
+        motionPlayAttempts.set(video, attempts + 1);
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        video.autoplay = true;
+        motionPlayPending = video;
+        let playRequest;
+        try { playRequest = video.play(); }
+        catch (error) { playRequest = Promise.reject(error); }
+        Promise.resolve(playRequest).then(() => {
+          if (motionPlayPending === video) motionPlayPending = null;
+          requestMotionVideoFrame(video);
+        }).catch(error => {
+          if (motionPlayPending === video) motionPlayPending = null;
+          if (motionFilms[motionScene] === video && !video.ended && (motionPlayAttempts.get(video) || 0) < 3) {
+            window.setTimeout(() => startMotionClip(video), 180);
+          } else if (motionFilms[motionScene] === video) {
+            console.warn("Motion clip could not start after entering its page.", error);
+          }
+        });
+      };
+      Object.values(motionFilms).forEach(video => {
+        video.addEventListener("loadeddata", () => {
+          motionFrameNeedsUpdate = true;
+          scheduleMotionDraw();
+          startMotionClip(video);
+        });
+        video.addEventListener("canplay", () => startMotionClip(video));
+        video.addEventListener("seeked", () => { motionFrameNeedsUpdate = true; scheduleMotionDraw(); startMotionClip(video); });
+        video.addEventListener("timeupdate", () => {
+          if (typeof video.requestVideoFrameCallback !== "function" && motionFilms[motionScene] === video && !video.paused) {
+            motionFrameNeedsUpdate = true;
+            scheduleMotionDraw();
+          }
+        });
+        video.addEventListener("playing", () => { if (motionPlayPending === video) motionPlayPending = null; requestMotionVideoFrame(video); });
+        video.addEventListener("ended", () => { video.autoplay = false; if (motionPlayPending === video) motionPlayPending = null; motionFrameNeedsUpdate = true; scheduleMotionDraw(); });
+      });
+      // 第 3 页：动画播完停在末帧 0.5s 后，三个图标同步从左到右淡入
+      const WORK_DOCS_HOLD = 500;
+      let workEndRequested = false;
+      let workDocsTimer = null;
+      let workDocsFallbackTimer = null;
+      const revealWorkDocs = () => {
+        workDocsTimer = null;
+        if (!workMotion.ended && !workMotion.paused && workMotion.currentTime > 0.3) return;
+        document.body.classList.add("work-docs-in");
+      };
+      const scheduleWorkDocsReveal = (delay = WORK_DOCS_HOLD) => {
+        if (document.body.classList.contains("work-docs-in") || workDocsTimer !== null) return;
+        workDocsTimer = window.setTimeout(revealWorkDocs, delay);
+      };
+      const scheduleWorkDocsFallback = () => {
+        if (workDocsFallbackTimer !== null || document.body.classList.contains("work-docs-in")) return;
+        const duration = Number.isFinite(workMotion.duration) && workMotion.duration > 0 ? workMotion.duration * 1000 : 12000;
+        workDocsFallbackTimer = window.setTimeout(() => scheduleWorkDocsReveal(0), duration + 3000);
+      };
+      workMotion.addEventListener("ended", () => scheduleWorkDocsReveal(WORK_DOCS_HOLD));
+      workMotion.addEventListener("error", () => scheduleWorkDocsReveal(1200));
+      // 离开第 3 页时复位：下次进入重新播放「末帧停 0.5s → 三图标同步淡入」
+      const resetWorkDocsReveal = () => {
+        if (workDocsTimer !== null) { window.clearTimeout(workDocsTimer); workDocsTimer = null; }
+        if (workDocsFallbackTimer !== null) { window.clearTimeout(workDocsFallbackTimer); workDocsFallbackTimer = null; }
+        if (document.body.classList.contains("work-docs-in")) document.body.classList.remove("work-docs-in");
+      };
+      // 视频从头重播时，先收回图标，等本轮播完 0.5s 后再淡入
+      workMotion.addEventListener("playing", () => {
+        if (workMotion.currentTime < 0.3) resetWorkDocsReveal();
+      });
+      // 打开 PDF 预览等其它标签时，暂停本页全部视频解码，避免预览页卡顿
+      document.addEventListener("visibilitychange", () => {
+        document.querySelectorAll("video").forEach(v => {
+          if (document.hidden) {
+            if (!v.paused) { v.dataset.autoResume = "1"; v.pause(); }
+          } else if (v.dataset.autoResume) {
+            delete v.dataset.autoResume;
+            v.play().catch(() => {});
+          }
+        });
+      });
+      const captureMotionFrame = () => {
+        if (!motionReady || !motionCanvas.width || !motionCanvas.height) return;
+        if (motionTransitionCanvas.width !== motionCanvas.width || motionTransitionCanvas.height !== motionCanvas.height) {
+          motionTransitionCanvas.width = motionCanvas.width;
+          motionTransitionCanvas.height = motionCanvas.height;
+        }
+        motionTransitionContext.clearRect(0, 0, motionTransitionCanvas.width, motionTransitionCanvas.height);
+        motionTransitionContext.drawImage(motionCanvas, 0, 0);
+        motionTransitionCanvas.style.transition = "none";
+        motionTransitionCanvas.style.opacity = "1";
+        void motionTransitionCanvas.offsetWidth;
+        requestAnimationFrame(() => {
+          motionTransitionCanvas.style.transition = "opacity .34s cubic-bezier(.2,.7,.2,1)";
+          motionTransitionCanvas.style.opacity = "0";
+        });
+      };
+      if (motionGL) {
+        const motionPrecision = motionGL.getShaderPrecisionFormat(motionGL.FRAGMENT_SHADER, motionGL.HIGH_FLOAT).precision ? "highp" : "mediump";
+        const motionVertex = `
+          attribute vec2 a_position;
+          attribute vec2 a_uv;
+          varying vec2 v_uv;
+          void main() { gl_Position = vec4(a_position, 0.0, 1.0); v_uv = a_uv; }
+        `;
+        const motionFragment = `
+          precision ${motionPrecision} float;
+          varying vec2 v_uv;
+          uniform sampler2D u_scene;
+          uniform vec2 u_cover;
+          uniform vec2 u_texel;
+          uniform float u_sharpness;
+          void main() {
+            vec2 uv = (v_uv - 0.5) * u_cover + 0.5;
+            vec4 pixel = texture2D(u_scene, clamp(uv, vec2(0.002), vec2(0.998)));
+            // The green screen is already baked out into the 4K MP4; draw the finished composite as opaque video.
+            vec3 nearby = (
+              texture2D(u_scene, clamp(uv + vec2(u_texel.x, 0.0), vec2(0.002), vec2(0.998))).rgb +
+              texture2D(u_scene, clamp(uv - vec2(u_texel.x, 0.0), vec2(0.002), vec2(0.998))).rgb +
+              texture2D(u_scene, clamp(uv + vec2(0.0, u_texel.y), vec2(0.002), vec2(0.998))).rgb +
+              texture2D(u_scene, clamp(uv - vec2(0.0, u_texel.y), vec2(0.002), vec2(0.998))).rgb
+            ) * 0.25;
+            vec3 crisp = clamp(pixel.rgb + (pixel.rgb - nearby) * u_sharpness, 0.0, 1.0);
+            gl_FragColor = vec4(mix(pixel.rgb, crisp, 0.8), 1.0);
+          }
+        `;
+        const compileMotionShader = (type, sourceText) => {
+          const shader = motionGL.createShader(type);
+          motionGL.shaderSource(shader, sourceText);
+          motionGL.compileShader(shader);
+          if (!motionGL.getShaderParameter(shader, motionGL.COMPILE_STATUS)) throw new Error(motionGL.getShaderInfoLog(shader) || "motion shader compile failed");
+          return shader;
+        };
+        try {
+          motionProgram = motionGL.createProgram();
+          motionGL.attachShader(motionProgram, compileMotionShader(motionGL.VERTEX_SHADER, motionVertex));
+          motionGL.attachShader(motionProgram, compileMotionShader(motionGL.FRAGMENT_SHADER, motionFragment));
+          motionGL.linkProgram(motionProgram);
+          if (!motionGL.getProgramParameter(motionProgram, motionGL.LINK_STATUS)) throw new Error(motionGL.getProgramInfoLog(motionProgram) || "motion shader link failed");
+          motionGL.useProgram(motionProgram);
+          const motionVertices = new Float32Array([
+            -1, 1, 0, 0,  1, 1, 1, 0,  -1, -1, 0, 1,
+            -1, -1, 0, 1,  1, 1, 1, 0,  1, -1, 1, 1
+          ]);
+          const motionBuffer = motionGL.createBuffer();
+          motionGL.bindBuffer(motionGL.ARRAY_BUFFER, motionBuffer);
+          motionGL.bufferData(motionGL.ARRAY_BUFFER, motionVertices, motionGL.STATIC_DRAW);
+          const motionPosition = motionGL.getAttribLocation(motionProgram, "a_position");
+          const motionUV = motionGL.getAttribLocation(motionProgram, "a_uv");
+          motionGL.enableVertexAttribArray(motionPosition);
+          motionGL.vertexAttribPointer(motionPosition, 2, motionGL.FLOAT, false, 16, 0);
+          motionGL.enableVertexAttribArray(motionUV);
+          motionGL.vertexAttribPointer(motionUV, 2, motionGL.FLOAT, false, 16, 8);
+          motionTexture = motionGL.createTexture();
+          motionGL.bindTexture(motionGL.TEXTURE_2D, motionTexture);
+          motionGL.texParameteri(motionGL.TEXTURE_2D, motionGL.TEXTURE_MIN_FILTER, motionGL.LINEAR);
+          motionGL.texParameteri(motionGL.TEXTURE_2D, motionGL.TEXTURE_MAG_FILTER, motionGL.LINEAR);
+          motionGL.texParameteri(motionGL.TEXTURE_2D, motionGL.TEXTURE_WRAP_S, motionGL.CLAMP_TO_EDGE);
+          motionGL.texParameteri(motionGL.TEXTURE_2D, motionGL.TEXTURE_WRAP_T, motionGL.CLAMP_TO_EDGE);
+          motionUniforms = {
+            scene: motionGL.getUniformLocation(motionProgram, "u_scene"),
+            cover: motionGL.getUniformLocation(motionProgram, "u_cover"),
+            texel: motionGL.getUniformLocation(motionProgram, "u_texel"),
+            sharpness: motionGL.getUniformLocation(motionProgram, "u_sharpness")
+          };
+          motionGL.clearColor(0, 0, 0, 0);
+          // Each draw writes one full-frame matte; leave alpha unpremultiplied for clean browser compositing.
+          motionGL.disable(motionGL.BLEND);
+        } catch (error) {
+          console.warn("Green-screen video rendering unavailable; keeping the portrait fallback.", error);
+          motionProgram = null;
+        }
+      }
+      const drawMotionFrame = () => {
+        motionDrawScheduled = false;
+        const video = motionScene && motionFilms[motionScene];
+        if (motionGL && motionProgram && video && video.readyState >= 2 && video.videoWidth) {
+          const bounds = motionCanvas.getBoundingClientRect();
+          const ratio = renderRatio();
+          const width = Math.max(1, Math.round(bounds.width * ratio));
+          const height = Math.max(1, Math.round(bounds.height * ratio));
+          if (motionCanvas.width !== width || motionCanvas.height !== height) {
+            motionCanvas.width = width;
+            motionCanvas.height = height;
+            motionGL.viewport(0, 0, width, height);
+            motionFrameNeedsUpdate = true;
+          }
+          try { if (motionFrameNeedsUpdate || !motionReady) {
+            motionGL.useProgram(motionProgram);
+            motionGL.bindTexture(motionGL.TEXTURE_2D, motionTexture);
+            motionGL.clear(motionGL.COLOR_BUFFER_BIT);
+            const maxTextureSize = motionGL.getParameter(motionGL.MAX_TEXTURE_SIZE) || video.videoWidth;
+            const scale = Math.min(1, maxTextureSize / video.videoWidth, maxTextureSize / video.videoHeight);
+            const sourceWidth = Math.max(1, Math.round(video.videoWidth * scale));
+            const sourceHeight = Math.max(1, Math.round(video.videoHeight * scale));
+            if (scale < 1) {
+              if (motionSourceCanvas.width !== sourceWidth || motionSourceCanvas.height !== sourceHeight) {
+                motionSourceCanvas.width = sourceWidth;
+                motionSourceCanvas.height = sourceHeight;
+              }
+              motionSourceContext.drawImage(video, 0, 0, sourceWidth, sourceHeight);
+              motionGL.texImage2D(motionGL.TEXTURE_2D, 0, motionGL.RGBA, motionGL.RGBA, motionGL.UNSIGNED_BYTE, motionSourceCanvas);
+            } else {
+              motionGL.texImage2D(motionGL.TEXTURE_2D, 0, motionGL.RGBA, motionGL.RGBA, motionGL.UNSIGNED_BYTE, video);
+            }
+            const sourceAspect = video.videoWidth / video.videoHeight;
+            const canvasAspect = width / height;
+            const cover = sourceAspect > canvasAspect ? [canvasAspect / sourceAspect, 1] : [1, sourceAspect / canvasAspect];
+            motionGL.uniform1i(motionUniforms.scene, 0);
+            motionGL.uniform2f(motionUniforms.cover, cover[0], cover[1]);
+            motionGL.uniform2f(motionUniforms.texel, 1 / sourceWidth, 1 / sourceHeight);
+            motionGL.uniform1f(motionUniforms.sharpness, video.ended ? 0.14 : sourceWidth < 1600 ? 0.12 : 0.09);
+            motionGL.drawArrays(motionGL.TRIANGLES, 0, 6);
+            motionFrameNeedsUpdate = false;
+            if (!motionReady) {
+              motionReady = true;
+              document.body.classList.add("motion-ready");
+            }
+          }} catch (_) {}
+        }
+      };
+      window.addEventListener("resize", () => { motionFrameNeedsUpdate = true; scheduleMotionDraw(); }, { passive: true });
+
+      const poseForPointer = event => {
+        const bounds = canvas.getBoundingClientRect();
+        const x = (event.clientX - (bounds.left + bounds.width / 2)) / (bounds.width / 2);
+        const y = (event.clientY - (bounds.top + bounds.height / 2)) / (bounds.height / 2);
+        // A compact center zone over the portrait restores the neutral gaze.
+        if (Math.abs(x) <= 0.16 && Math.abs(y) <= 0.18) return "center";
+        return Math.abs(x) > Math.abs(y) ? (x < 0 ? "left" : "right") : (y < 0 ? "up" : "down");
+      };
+      const crossfadeCurrentFrame = () => {
+        if (!transitionContext || !canvas.width || !canvas.height) return;
+        const width = canvas.width;
+        const height = canvas.height;
+        const previousOpacity = Number.parseFloat(getComputedStyle(transitionCanvas).opacity) || 0;
+        if (previousOpacity > 0 && transitionCanvas.width && transitionCanvas.height) {
+          previousLayer.width = width;
+          previousLayer.height = height;
+          previousContext.clearRect(0, 0, width, height);
+          previousContext.drawImage(transitionCanvas, 0, 0, width, height);
+        }
+        if (transitionCanvas.width !== width || transitionCanvas.height !== height) {
+          transitionCanvas.width = width;
+          transitionCanvas.height = height;
+        }
+        transitionContext.clearRect(0, 0, width, height);
+        transitionContext.globalAlpha = 1;
+        transitionContext.drawImage(canvas, 0, 0, width, height);
+        if (previousOpacity > 0) {
+          transitionContext.globalAlpha = previousOpacity;
+          transitionContext.drawImage(previousLayer, 0, 0, width, height);
+        }
+        transitionContext.globalAlpha = 1;
+        transitionCanvas.style.transition = "none";
+        transitionCanvas.style.opacity = "1";
+        void transitionCanvas.offsetWidth;
+        requestAnimationFrame(() => {
+          transitionCanvas.style.transition = "opacity .18s cubic-bezier(.2,.7,.2,1)";
+          transitionCanvas.style.opacity = "0";
+        });
+      };
+      const setPose = next => {
+        if (next === activePose) return;
+        crossfadeCurrentFrame();
+        activePose = next;
+        poseStarted = performance.now();
+      };
+      window.addEventListener("pointermove", event => {
+        if (!resumeMode && progress < RESUME_START && event.pointerType !== "touch") setPose(poseForPointer(event));
+      }, { passive: true });
+      document.documentElement.addEventListener("pointerleave", () => { if (!resumeMode) setPose("center"); });
+
+      const setActive = video => {
+        if (activeFilm === video) return;
+        films.forEach(item => item.classList.toggle("is-active", item === video));
+        if (activePose === null) crossfadeCurrentFrame();
+        if (video === intro) intro.currentTime = 0;
+        if (video === outro && duration > 1) outro.currentTime = duration * .96;
+        activeFilm = video;
+        if (backdrop.readyState >= 2) {
+          try { backdrop.currentTime = Math.max(0, Math.min(duration - .05, video.currentTime || 0)); } catch (_) {}
+        }
+      };
+      const timeLabel = seconds => {
+        const n = Math.max(0, Math.floor(seconds || 0));
+        return `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
+      };
+      const enterMotionScene = nextScene => {
+        if (motionScene === nextScene) return;
+        const previous = motionScene && motionFilms[motionScene];
+        if (previous) {
+          captureMotionFrame();
+          previous.autoplay = false;
+          previous.pause();
+        }
+        motionPlayPending = null;
+        motionScene = nextScene;
+        motionFrameNeedsUpdate = true;
+        motionReady = false;
+        document.body.classList.remove("motion-ready");
+        if (!nextScene) return;
+        const clip = motionFilms[nextScene];
+        clip.pause();
+        clip.muted = true;
+        clip.defaultMuted = true;
+        clip.playsInline = true;
+        clip.autoplay = true;
+        clip.loop = false;
+        motionPlayAttempts.set(clip, 0);
+        try { clip.currentTime = 0; } catch (_) {}
+        if (nextScene === "work" && clip.readyState < 2) {
+          clip.preload = "auto";
+          clip.load();
+        }
+        if (clip.readyState >= 2) {
+          scheduleMotionDraw();
+          startMotionClip(clip);
+        }
+      };
+      const update = () => {
+        frame = 0;
+        const distance = Math.max(1, duration * window.innerHeight);
+        progress = Math.max(0, Math.min(1, window.scrollY / distance));
+        const percentage = Math.round(progress * 100);
+        fill.style.width = `${percentage}%`;
+        bar.setAttribute("aria-valuenow", String(percentage));
+        label.textContent = `${timeLabel(progress * duration)} — ${timeLabel(duration)}`;
+
+        const chapterIndex = progress < RESUME_START ? 0 : progress < WORK_START ? 1 : 2;
+        document.body.classList.toggle("is-resume", chapterIndex === 1);
+        document.body.classList.toggle("is-work", chapterIndex === 2);
+        if (chapterIndex === 2) {
+          if (workMotion.ended && motionScene === "work") scheduleWorkDocsReveal(WORK_DOCS_HOLD);
+          else scheduleWorkDocsFallback();
+        } else {
+          resetWorkDocsReveal();
+        }
+        const nextMotionScene = chapterIndex === 1 ? "resume" : chapterIndex === 2 ? "work" : null;
+        enterMotionScene(nextMotionScene);
+        if (workEndRequested && nextMotionScene === "work" && motionScene === "work") {
+          workEndRequested = false;
+          const seekWorkToEnd = () => {
+            try { workMotion.currentTime = Math.max(0, (Number.isFinite(workMotion.duration) ? workMotion.duration : 4.07) - 0.05); } catch (_) {}
+          };
+          if (workMotion.readyState >= 1) seekWorkToEnd();
+          else workMotion.addEventListener("loadedmetadata", seekWorkToEnd, { once: true });
+          scheduleWorkDocsReveal(WORK_DOCS_HOLD + 300);
+        }
+        if (nextMotionScene && motionFilms[nextMotionScene].readyState >= 2) {
+          scheduleMotionDraw();
+          startMotionClip(motionFilms[nextMotionScene]);
+        }
+        resumeMode = chapterIndex === 1;
+        if (resumeMode) {
+          const t = Math.max(0, Math.min(.9999, (progress - RESUME_START) / RESUME_SPAN));
+          let currentPanel = 0;
+          resumePanels.forEach((panel, index) => {
+            const reveal = Math.max(0, Math.min(1, (t - resumePanelStarts[index]) / .055));
+            panel.style.setProperty("--reveal", reveal.toFixed(3));
+            panel.classList.toggle("is-current", index === currentPanel);
+            if (t >= resumePanelStarts[index]) currentPanel = index;
+          });
+          resumePanels.forEach((panel, index) => panel.classList.toggle("is-current", index === currentPanel));
+          let currentEntry = -1;
+          resumeEntries.forEach((entry, index) => {
+            const start = Number(entry.dataset.entryReveal);
+            const reveal = Math.max(0, Math.min(1, (t - start) / .045));
+            entry.style.setProperty("--entry-reveal", reveal.toFixed(3));
+            if (t >= start) currentEntry = index;
+          });
+          resumeEntries.forEach((entry, index) => entry.classList.toggle("is-current", index === currentEntry));
+          const timelineBlock = document.querySelector(".resume-timeline");
+          if (timelineBlock) {
+            const timelineReveal = Math.max(0, Math.min(1, (t + .05) / .05));
+            timelineBlock.style.setProperty("--reveal", timelineReveal.toFixed(3));
+          }
+          const expItems = [...document.querySelectorAll("[data-exp-item]")];
+          if (expItems.length) {
+            const expSpan = Math.max(0, Math.min(.9999, (t - .22) / .44));
+            const expIndex = Math.min(expItems.length - 1, Math.floor(expSpan * expItems.length));
+            if (expIndex !== lastExpIndex) {
+              lastExpIndex = expIndex;
+              const stageHeight = timelineStage ? timelineStage.clientHeight : 0;
+              expItems.forEach((item, index) => {
+                const offset = (index - expIndex) * stageHeight;
+                item.style.transform = `translateY(${offset}px)`;
+                item.style.opacity = index === expIndex ? "1" : "0";
+              });
+            }
+            if (timelineDot) {
+              const pct = expItems.length > 1 ? (expIndex / (expItems.length - 1)) * 100 : 0;
+              timelineDot.style.left = `${pct}%`;
+            }
+          }
+          const sequence = ["left", "up", "right", "down"];
+          if (t < .12 || t >= .96) {
+            setPose("center");
+            resumeFrameIndex = null;
+          } else {
+            const sequenceT = (t - .12) / .84;
+            const position = sequenceT * sequence.length;
+            const index = Math.min(sequence.length - 1, Math.floor(position));
+            const poseName = sequence[index];
+            setPose(poseName);
+            resumeFrameIndex = (position - index) * (poseFrames[poseName].count - 1);
+          }
+        } else {
+          resumeFrameIndex = null;
+          if (chapterIndex === 2 && activeChapter !== 2) setPose("center");
+        }
+        activeChapter = chapterIndex;
+
+        const introEnd = Math.min(.02, 1 / Math.max(1, duration));
+        const outroStart = .98;
+        if (progress < introEnd) {
+          setActive(intro);
+          main.pause();
+          if (ready && intro.paused) intro.play().catch(() => {});
+        } else if (progress >= outroStart) {
+          setActive(outro);
+          main.pause();
+          if (ready && outro.paused) outro.play().catch(() => {});
+        } else {
+          intro.pause(); outro.pause(); setActive(main);
+          const seekTo = Math.max(0, Math.min(duration - .04, (progress - introEnd) / (outroStart - introEnd) * duration));
+          if (!prefersReduced && Math.abs(main.currentTime - seekTo) > .045) {
+            try { main.currentTime = seekTo; } catch (_) {}
+          }
+        }
+        if (activeFilm && backdrop.readyState >= 2 && Math.abs(backdrop.currentTime - activeFilm.currentTime) > .16) {
+          try { backdrop.currentTime = activeFilm.currentTime; } catch (_) {}
+        }
+      };
+      const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+      const setScrollHeight = () => {
+        const mediaLength = Math.max(1, duration);
+        track.style.setProperty("--scroll-distance", `${mediaLength * 100}vh`);
+        document.documentElement.style.setProperty("--scroll-distance", `${mediaLength * 100}vh`);
+        schedule();
+      };
+      films.forEach(video => {
+        video.addEventListener("loadedmetadata", () => {
+          if (video === main) { duration = Math.max(1, video.duration || 1); setScrollHeight(); }
+          ready++;
+          if (ready === films.length) {
+            intro.currentTime = 0;
+            intro.play().catch(() => {});
+          }
+        });
+        video.addEventListener("timeupdate", () => {
+          if ((video === intro && video.currentTime >= duration * .04) || (video === outro && video.currentTime >= duration)) video.currentTime = video === intro ? 0 : duration * .96;
+        });
+      });
+      backdrop.addEventListener("loadedmetadata", () => {
+        if (activeFilm) { try { backdrop.currentTime = activeFilm.currentTime || 0; } catch (_) {} }
+      });
+      document.querySelectorAll("[data-scroll]").forEach(link => link.addEventListener("click", event => {
+        event.preventDefault();
+        const targetProgress = Number(link.dataset.scroll);
+        window.scrollTo({ top: Math.max(0, targetProgress * duration * window.innerHeight), behavior: prefersReduced ? "auto" : "smooth" });
+      }));
+      window.addEventListener("scroll", schedule, { passive: true });
+      window.addEventListener("resize", setScrollHeight, { passive: true });
+      main.addEventListener("loadedmetadata", setScrollHeight, { once: true });
+      setScrollHeight();
+      // 从文档页「返回作品集」：直接落在第 3 页，动画停在末帧，下载按钮直接可见
+      if (location.hash === "#work") {
+        workEndRequested = true;
+        const jumpToWork = () => {
+          window.scrollTo(0, Math.round(.681 * duration * window.innerHeight));
+          schedule();
+        };
+        jumpToWork();
+        window.addEventListener("load", jumpToWork, { once: true });
+        setTimeout(jumpToWork, 600);
+      }
+    })();
+  </script>
+<script>
+  // 预览空间带 token 访问时，把 token 传给三个文档页，避免打开后资源 401
+  (function () {
+    var q = location.search;
+    if (!q) return;
+    document.querySelectorAll(".work-doc").forEach(function (a) {
+      var h = a.getAttribute("href");
+      if (h && h.indexOf("?") === -1) a.setAttribute("href", h + q);
+    });
+  })();
+</script>
+</body>
+</html>

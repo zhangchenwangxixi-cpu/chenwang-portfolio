@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>英文版 CV · 张辰望</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #10110e; color: #f4f1e6; font-family: "PingFang SC","Microsoft YaHei",-apple-system,"Segoe UI",sans-serif; min-height: 100vh; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 20px; background: #141510; border-bottom: 1px solid rgba(229,203,126,.18); position: sticky; top: 0; z-index: 3; }
+  .meta { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff6a3a; box-shadow: 0 0 12px rgba(255,106,58,.8); flex: none; }
+  h1 { font-size: 16px; font-weight: 600; letter-spacing: .06em; }
+  .sub { font-size: 11px; color: rgba(244,241,230,.5); letter-spacing: .06em; margin-top: 3px; }
+  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  a { text-decoration: none; color: inherit; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 99px; font-size: 12px; letter-spacing: .06em; border: 1px solid rgba(229,203,126,.45); background: transparent; color: rgba(244,241,230,.85); cursor: pointer; font-family: inherit; transition: background .2s, color .2s, border-color .2s; }
+  .btn-primary { background: #e5cb7e; color: #191a14; font-weight: 600; border-color: #e5cb7e; }
+  .btn-primary:hover { background: #f2dda0; }
+  .btn-ghost:hover { border-color: #e5cb7e; color: #e5cb7e; }
+  main { max-width: 900px; margin: 0 auto; padding: 22px 18px 40px; }
+  .toolbar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .page { display: block; width: 100%; max-width: 780px; margin: 0 auto; border: 1px solid rgba(229,203,126,.16); border-radius: 6px; box-shadow: 0 18px 50px rgba(0,0,0,.45); cursor: zoom-in; background: #fff; min-height: 200px; }
+  .note { text-align: center; font-size: 12px; line-height: 1.9; color: rgba(244,241,230,.55); margin-top: 14px; }
+  #pdfbox { display: none; margin-top: 18px; }
+  #pdfbox iframe { width: 100%; height: 78vh; border: 0; background: #1a1b16; }
+</style>
+</head>
+<body>
+<header>
+  <div class="meta">
+    <span class="dot"></span>
+    <div>
+      <h1>英文版 CV</h1>
+      <div class="sub">张辰望 CHENWANG · PDF · 74 KB</div>
+    </div>
+  </div>
+  <div class="actions">
+    <a class="btn btn-ghost" id="back" href="../../index.html#work">返回作品集</a>
+    <a class="btn btn-primary" id="dl" href="cv-en.pdf" download="Zhang_Chenwang_CV.pdf">下载保存 PDF</a>
+  </div>
+</header>
+<main>
+  <div class="toolbar">
+    <button class="btn btn-ghost" id="toggle" type="button">在线预览 PDF</button>
+    <a class="btn btn-ghost" href="cv-en.pdf" target="_blank" rel="noopener">新标签打开原始文件</a>
+  </div>
+  <a href="cv-en.pdf" target="_blank" rel="noopener" title="点击在新标签打开 PDF"><img class="page" data-src="preview-cv-en.jpg" alt="英文版 CV首页预览"></a>
+  <div id="pdfbox"><iframe id="pdf-frame" title="英文版 CV" loading="lazy"></iframe></div>
+  <p class="note">默认显示首页预览图，打开速度快；需要翻页阅读时点「在线预览 PDF」。<br>手机若无法内嵌预览，请直接点右上角「下载保存 PDF」。</p>
+</main>
+<script>
+  var Q = location.search || '';
+  function withQ(u) {
+    if (!Q || u.indexOf('?') !== -1) return u;
+    var hash = '';
+    var i = u.indexOf('#');
+    if (i !== -1) { hash = u.slice(i); u = u.slice(0, i); }
+    return u + Q + hash;
+  }
+  // 预览空间的每个请求都要带 token：统一补到站内链接与资源上
+  Array.prototype.forEach.call(document.querySelectorAll('a[href]'), function (a) {
+    var h = a.getAttribute('href');
+    if (h && !/^(https?:|mailto:|tel:|#)/i.test(h)) a.setAttribute('href', withQ(h));
+  });
+  var img = document.querySelector('.page');
+  img.src = withQ(img.getAttribute('data-src'));
+
+  // 下载：直接抓取文件并本地保存，不经过 PDF 插件，避免跳转与卡顿
+  var dl = document.getElementById('dl');
+  dl.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (dl.dataset.busy) return;
+    dl.dataset.busy = '1';
+    var old = dl.textContent;
+    dl.textContent = '下载中…';
+    fetch(withQ('cv-en.pdf')).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.blob();
+    }).then(function (b) {
+      var u = URL.createObjectURL(b);
+      var a = document.createElement('a');
+      a.href = u;
+      a.download = 'Zhang_Chenwang_CV.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(u); }, 5000);
+      dl.textContent = '已保存到下载目录';
+    }).catch(function () {
+      window.location.href = withQ('cv-en.pdf');
+      dl.textContent = old;
+    }).finally(function () {
+      delete dl.dataset.busy;
+      setTimeout(function () { dl.textContent = old; }, 2600);
+    });
+  });
+
+  var open = false;
+  document.getElementById('toggle').addEventListener('click', function () {
+    var box = document.getElementById('pdfbox');
+    var frame = box.querySelector('iframe');
+    if (!open) {
+      if (!frame.src) frame.src = withQ('cv-en.pdf') + '#view=FitH';
+      box.style.display = 'block';
+      this.textContent = '收起在线预览';
+      open = true;
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      box.style.display = 'none';
+      this.textContent = '在线预览 PDF';
+      open = false;
+    }
+  });
+</script>
+</body>
+</html>
